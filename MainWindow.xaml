@@ -8,10 +8,11 @@
         mc:Ignorable="d"
         Title="" Width="1920" Height="1080" Loaded="Window_Loaded" Background="{x:Null}" WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized" WindowStartupLocation="CenterOwner">
     <Grid>
-        <tb:TaskbarIcon x:Name="TrayIcon" Visibility="Visible" ToolTipText="WallpaperBlur" IconSource="/ico.ico">
+        <tb:TaskbarIcon x:Name="TrayIcon" Visibility="Visible" ToolTipText="WallpaperBlur" IconSource="/ico.ico" TrayLeftMouseDown="TrayIcon_TrayLeftMouseDown">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Закрыть WallpaperBlur" PreviewMouseDown="Label_PreviewMouseDown"/>
+                    <MenuItem x:Name="SettingsContext" Header="Настройки" PreviewMouseDown="SettingsContext_PreviewMouseDown"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
