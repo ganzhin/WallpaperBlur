@@ -23,27 +23,30 @@ namespace WallpaperBlur
         public bool RainCompatibility { get; set; }
 
         private bool _settingsShowed = false;
-        
+        private IntPtr _hParent;
+        private IntPtr _hWorkerW;
+        private BlurEffect _blur = new BlurEffect();
+        private bool _externalWallpapers = false;
+        private Bitmap _desktopScreen;
+
         public MainWindow()
         {
             InitializeComponent();
         }
         private void TimerTick(object sender, EventArgs e)
         {
-            var blur = new BlurEffect();
-            blur.KernelType = BlurType;
             if (CheckActiveWindowUnnamed())
             {
-                if (((BlurEffect)Paper.Effect).Radius >= BlurStrength)
+                if (((BlurEffect)Paper.Effect).Radius == BlurStrength)
                 {
-                    AnimateBlur(blur, BlurStrength, 0);
+                    AnimateBlur(_blur, BlurStrength, 0);
                 }
             }
             else
             {
-                if (((BlurEffect)Paper.Effect).Radius <= 0)
+                if (((BlurEffect)Paper.Effect).Radius == 0)
                 {
-                    AnimateBlur(blur, 0, BlurStrength);
+                    AnimateBlur(_blur, 0, BlurStrength);
                 }
             }
         }
@@ -62,6 +65,7 @@ namespace WallpaperBlur
                 Duration = TimeSpan.FromSeconds(.3d),
                 IsCumulative = true,
             };
+            _blur.KernelType = BlurType;
             blur.BeginAnimation(BlurEffect.RadiusProperty, animation);
             blur.RenderingBias = RenderingBias.Performance;
             Paper.Effect = blur;
@@ -98,21 +102,27 @@ namespace WallpaperBlur
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            string wallpaperPath = (string)Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Desktop", "Wallpaper", null);
-            if (File.Exists(wallpaperPath))
-            {
-                Paper.Source = (ImageSourceFromBitmap(new Bitmap(wallpaperPath)));
-            }
+            SetBehindIcons();
+            ShowSettings();
+            System.Drawing.Size screenSize = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size;
+            _desktopScreen = new Bitmap(screenSize.Width, screenSize.Height);
+
+            UpdatePicture(null, null);
 
             if (BlurStrength == 0) BlurStrength = 25;
 
             System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(TimerTick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 500);
+            dispatcherTimer.Interval = TimeSpan.FromSeconds(.5d);
             dispatcherTimer.Start();
 
-            SetBehindIcons();
-            ShowSettings();
+            if (_externalWallpapers)
+            {
+                System.Windows.Threading.DispatcherTimer updateTimer = new System.Windows.Threading.DispatcherTimer();
+                updateTimer.Interval = TimeSpan.FromSeconds(1d/24d);
+                updateTimer.Tick += new EventHandler(UpdatePicture);
+                updateTimer.Start();
+            }
         }
         private void SetBehindIcons()
         {
@@ -153,6 +163,7 @@ namespace WallpaperBlur
                 if (p == IntPtr.Zero)
                 {
                     hAfterLowest = tophandle;
+                    Win32.SetWindowLong(hAfterLowest, -16, 0x17080000);
                     return false;
                 }
                 return true;
@@ -163,9 +174,15 @@ namespace WallpaperBlur
             {
                 hAfterLowest = hWorkerW;
             }
+            else
+            {
+                _externalWallpapers = true;
+            }
 
+            _hWorkerW = hWorkerW;
+            _hParent = hAfterLowest;
             var hThis = new WindowInteropHelper(this).Handle;
-            Win32.SetParent(hThis, hAfterLowest);
+            Win32.SetParent(hThis, _hParent);
 
             Visibility = Visibility.Visible;
             WindowState = WindowState.Maximized;
@@ -212,6 +229,26 @@ namespace WallpaperBlur
         public void SettingsHide()
         {
             _settingsShowed = false;
+        }
+        public void UpdatePicture(object sender, EventArgs e)
+        {
+            Paper.Opacity = (((BlurEffect)Paper.Effect).Radius > 0) ? 1 : 0;
+
+            if (Paper.Opacity != 0)
+            {
+                Paper.Source = ImageSourceFromBitmap(ScreenShot());
+
+            }
+        }
+
+        private Bitmap ScreenShot()
+        {
+            using (Graphics g = Graphics.FromImage(_desktopScreen))
+            {
+                Win32.PrintWindow(_hWorkerW, g.GetHdc(), 0);
+                g.Dispose();
+            }
+            return _desktopScreen;
         }
     }
 }

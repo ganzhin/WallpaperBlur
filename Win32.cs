@@ -6,6 +6,10 @@ namespace WallpaperBlur
 {
     internal class Win32
     {
+        public const IntPtr WS_CLIPCHILDREN = 0x02000000;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool PrintWindow(IntPtr hwnd, IntPtr hDC, uint nFlags);
         [DllImport("user32.dll")]
         public static extern bool IsIconic(IntPtr hWnd);
         [DllImport("user32.dll")]
@@ -36,6 +40,8 @@ namespace WallpaperBlur
         public static extern bool SystemParametersInfo(int uiAction, uint uiParam, string pvParam, int fWinIni);
         [DllImport("user32.dll")]
         public static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int SetWindowLong(IntPtr hwnd, int index, int newStyle);
         [DllImport("user32.dll")]
         public static extern bool SetWindowPos(
         IntPtr hWnd,

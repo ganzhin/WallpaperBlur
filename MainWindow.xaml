@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:WallpaperBlur"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="" Width="1920" Height="1080" Loaded="Window_Loaded" Background="{x:Null}" WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized" WindowStartupLocation="CenterOwner">
-    <Grid>
+        Title="" Width="1920" Height="1080" Loaded="Window_Loaded" WindowStyle="None" ResizeMode="NoResize" WindowState="Maximized" WindowStartupLocation="CenterOwner" Foreground="{x:Null}" AllowsTransparency="True" Background="Transparent">
+    <Grid Background="#00000000">
         <tb:TaskbarIcon x:Name="TrayIcon" Visibility="Visible" ToolTipText="WallpaperBlur" IconSource="/ico.ico" TrayLeftMouseDown="TrayIcon_TrayLeftMouseDown">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
